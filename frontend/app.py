@@ -187,7 +187,7 @@ idx = st.session_state.index
 if idx in st.session_state.section_done:
     st.success("✅ This section is complete!")
 else:
-    st.info("⚠️ Complete the Summary Evaluation and Quiz to unlock the next section.")
+    st.info("⚠️ Complete the Summary Evaluation and Quiz to unlock the Next Section.")
 
 st.divider()
 
