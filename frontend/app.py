@@ -8,13 +8,16 @@ from services.pdf_loader import load_pdf_text
 from services.section_splitter import split_sections
 from services.certificate import generate_certificate
 
-BASE_URL = "http://127.0.0.1:8000"
+from backend.config.settings import (
+    BASE_URL, MIN_SUMMARY_WORDS,
+    COPY_SIMILARITY_THRESHOLD, PDF_PATH
+)
 
 st.set_page_config(page_title="AI Learning Platform", layout="wide")
 
 @st.cache_data
 def load_data():
-    text = load_pdf_text("data/retail.pdf")
+    text = load_pdf_text(PDF_PATH)
     sections_dict = split_sections(text)
     return [{"title": k, "content": v} for k, v in sections_dict.items()]
 
@@ -45,11 +48,13 @@ if "completed" not in st.session_state:
 # -----------------------------
 # SIMILARITY CHECK
 # -----------------------------
-def is_copied(user_text, source_text, threshold=0.7):
-    user_clean = user_text.lower().strip()
-    source_clean = source_text.lower().strip()
-    ratio = SequenceMatcher(None, user_clean, source_clean).ratio()
-    return ratio >= threshold
+def is_copied(user_text, source_text):
+    ratio = SequenceMatcher(
+        None,
+        user_text.lower().strip(),
+        source_text.lower().strip()
+    ).ratio()
+    return ratio >= COPY_SIMILARITY_THRESHOLD
 
 # -----------------------------
 # NAME GATE
@@ -187,7 +192,7 @@ idx = st.session_state.index
 if idx in st.session_state.section_done:
     st.success("✅ This section is complete!")
 else:
-    st.info("⚠️ Complete the Summary Evaluation and Quiz to unlock the Next Section.")
+    st.info("⚠️ Complete the Summary Evaluation and Quiz to unlock the next section.")
 
 st.divider()
 
@@ -227,9 +232,10 @@ st.markdown(
 st.markdown(f"#### ⏱ Estimated Time: {time}")
 
 if st.button("🔊 Listen to Summary"):
-    audio_bytes = api_speech(summary)
-    st.audio(audio_bytes, format="audio/mp3")
+    st.session_state[f"audio_{idx}"] = api_speech(summary)
 
+if st.session_state.get(f"audio_{idx}"):
+    st.audio(st.session_state[f"audio_{idx}"], format="audio/mp3")
 if st.button("Show Jargon"):
     jargon_text = extract_jargon(current["content"])
     rows = []
@@ -237,21 +243,24 @@ if st.button("Show Jargon"):
         if "|" in line:
             parts = line.split("|")
             if len(parts) >= 2:
-                rows.append({"Term": parts[0].strip(), "Meaning": parts[1].strip()})
+                term = parts[0].strip()
+                meaning = parts[1].strip()
+                # Skip empty rows and header rows
+                if term and meaning and term.lower() != "term":
+                    rows.append({"Term": term, "Meaning": meaning})
+    st.session_state[f"jargon_{idx}"] = rows
+
+if st.session_state.get(f"jargon_{idx}"):
+    rows = st.session_state[f"jargon_{idx}"]
     if rows:
         st.table(pd.DataFrame(rows))
     else:
         st.warning("No jargon extracted. Try again.")
 
+
 st.divider()
 
-# -----------------------------
-# AI EXPLANATION
-# -----------------------------
-st.subheader("🤖 AI Explanation")
-if st.button("Explain Section"):
-    explanation = api_explain(current["content"])
-    st.success(explanation)
+
 
 # -----------------------------
 # SUMMARY EVALUATION (MANDATORY)

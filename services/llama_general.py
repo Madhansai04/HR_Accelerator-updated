@@ -1,21 +1,28 @@
+# services/llama_general.py
+#
+# Two LLM functions:
+# call_llm()      → 8B model  → fast tasks (summary, jargon, time)
+# call_llm_quiz() → 70B model → smart tasks (evaluate, quiz generate, quiz evaluate)
+
 from backend.config.config import client
-import os
-from dotenv import load_dotenv
+from backend.config.settings import LLAMA_GENERAL, LLAMA_CODE
 
-# ✅ THIS LINE IS MISSING
-load_dotenv()
 
-MODEL_ID = os.getenv("LLAMA_GENERAL", "meta.llama3-8b-instruct-v1:0")
-
-def call_llm(prompt):
+def call_llm(prompt: str) -> str:
+    """Fast 8B model — summaries, time estimation, jargon."""
+    print(f"[LLM] GENERAL model ({LLAMA_GENERAL})")
     response = client.converse(
-        modelId=MODEL_ID,
-        messages=[
-            {
-                "role": "user",
-                "content": [{"text": prompt}]
-            }
-        ]
+        modelId=LLAMA_GENERAL,
+        messages=[{"role": "user", "content": [{"text": prompt}]}]
     )
+    return response["output"]["message"]["content"][0]["text"]
 
+
+def call_llm_quiz(prompt: str) -> str:
+    """Smart 70B model — evaluation, quiz generation, quiz evaluation."""
+    print(f"[LLM] QUIZ model ({LLAMA_CODE})")
+    response = client.converse(
+        modelId=LLAMA_CODE,
+        messages=[{"role": "user", "content": [{"text": prompt}]}]
+    )
     return response["output"]["message"]["content"][0]["text"]

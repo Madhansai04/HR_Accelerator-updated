@@ -1,4 +1,4 @@
-from services.llama_general import call_llm
+from services.llama_general import call_llm_quiz
 
 def generate_smart_quiz(content, user_summary):
     prompt = f"""
@@ -39,6 +39,7 @@ D) option
 Subjective 1: question
 Subjective 2: question
 
+
 RULES:
 - No extra text
 - No explanations
@@ -48,4 +49,4 @@ RULES:
 - Follow format EXACTLY
 """
 
-    return call_llm(prompt)
+    return call_llm_quiz(prompt)

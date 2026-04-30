@@ -1,24 +1,26 @@
+# services/polly_service.py
+#
+# Text-to-speech using AWS Polly.
+# Voice ID and region configurable via .env.
+
 import boto3
-import os
+from backend.config.settings import (
+    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+    POLLY_REGION, POLLY_VOICE_ID
+)
 
-def text_to_speech(text):
 
+def text_to_speech(text: str) -> bytes:
     polly = boto3.client(
         "polly",
-        region_name="ap-south-1",
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+        region_name=POLLY_REGION,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
     )
-
     response = polly.synthesize_speech(
         Text=text,
         OutputFormat="mp3",
-        VoiceId="Joanna"
+        VoiceId=POLLY_VOICE_ID
     )
-
     audio_stream = response.get("AudioStream")
-
-    if audio_stream:
-        return audio_stream.read()
-
-    return None
+    return audio_stream.read() if audio_stream else b""

@@ -1,12 +1,16 @@
-import boto3
-import os
-from dotenv import load_dotenv
+# backend/config/config.py
+#
+# Creates AWS Bedrock client using credentials from settings.
+# Imported by llama_general.py only.
 
-load_dotenv()  # load .env file
+import boto3
+from backend.config.settings import (
+    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+)
 
 client = boto3.client(
     "bedrock-runtime",
-    region_name="us-east-1",  # ✅ MUST
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    region_name=AWS_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
 )

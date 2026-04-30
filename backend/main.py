@@ -1,15 +1,20 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from services.pdf_loader import load_pdf_text
 from services.section_splitter import split_sections
 from services.tutor import teach
 from services.evaluator import evaluate
 from services.quiz_generator import generate_smart_quiz
 from services.quiz_evaluator import evaluate_quiz
+from backend.config.settings import PDF_PATH
 
 
 def run():
 
     print("Loading PDF...")
-    text = load_pdf_text("data/retail.pdf")
+    text = load_pdf_text(PDF_PATH)
 
     print("Splitting sections...")
     sections = split_sections(text)
